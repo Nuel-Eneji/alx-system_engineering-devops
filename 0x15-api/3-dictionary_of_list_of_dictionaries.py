@@ -1,34 +1,30 @@
 #!/usr/bin/python3
-"""
-Using https://jsonplaceholder.typicode.com
-gathers data from API and exports it to JSON file
-Implemented using recursion
-"""
+"""using the JSONPlaceholder API:
+   export information about the TODO list progress for all employees IDs
+   to a file (JSON format), file name must be: todo_all_employees.json"""
+
 import json
 import requests
 
-
-API = "https://jsonplaceholder.typicode.com"
-"""REST API url"""
-
-
 if __name__ == '__main__':
-    users_res = requests.get('{}/users'.format(API)).json()
-    todos_res = requests.get('{}/todos'.format(API)).json()
-    users_data = {}
-    for user in users_res:
-        id = user.get('id')
-        user_name = user.get('username')
-        todos = list(filter(lambda x: x.get('userId') == id, todos_res))
-        user_data = list(map(
-            lambda x: {
-                'username': user_name,
-                'task': x.get('title'),
-                'completed': x.get('completed')
-            },
-            todos
-        ))
-        users_data['{}'.format(id)] = user_data
-    with open('todo_all_employees.json', 'w') as file:
-        json.dump(users_data, file)
+    url = "https://jsonplaceholder.typicode.com/"
 
+    user_dict = {}
+    name_dict = {}
+    users = requests.get(url + "users").json()
+    for user in users:
+        user_id = user.get("id")
+        user_dict[user_id] = []
+        name_dict[user_id] = user.get("username")
+
+    todo = requests.get(url + "todos").json()
+    for task in todo:
+        user_id = task.get("userId")
+        task_dict = {}
+        task_dict["task"] = task.get("title")
+        task_dict["completed"] = task.get("completed")
+        task_dict["username"] = name_dict.get(user_id)
+        user_dict.get(user_id).append(task_dict)
+
+    with open("todo_all_employees.json", "w") as file:
+        json.dump(user_dict, file)
